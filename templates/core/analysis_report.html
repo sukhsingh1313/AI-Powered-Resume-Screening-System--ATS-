@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="row mb-4 mt-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bolder text-dark mb-0">AI Candidate Report</h2>
+            <p class="text-muted mt-1 fs-5">Candidate: <strong class="text-primary">{{ application.candidate.username }}</strong> | Role: {{ application.job.title }}</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-dark rounded-pill fw-bold px-4 shadow-sm">← Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-5 mb-4">
+        
+        <div class="card shadow-sm border-0 mb-4 rounded-4">
+            <div class="card-body text-center p-4">
+                <h5 class="card-title text-muted fw-bold mb-4">AI Match Score</h5>
+                <div style="position: relative; height: 220px; width: 220px; margin: auto;">
+                    <canvas id="scoreChart"></canvas>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%);">
+                        <h1 class="fw-bolder mb-0" style="color: #4f46e5; font-size: 3rem;">{{ application.match_score|default:"0" }}<span class="fs-4">%</span></h1>
+                        <small class="text-muted fw-bold">FIT</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-dark text-white py-3 border-0">
+                <h5 class="mb-0 fw-bold small text-uppercase"><i class="fas fa-robot text-warning me-2"></i>AI Interview Insights</h5>
+            </div>
+            <div class="card-body p-4 bg-light bg-opacity-50">
+                {% if application.ai_interview_questions %}
+                    <p class="text-muted mb-3 small fw-bold text-uppercase">Recommended Technical Questions:</p>
+                    <div class="bg-white p-3 rounded-4 shadow-sm border-start border-4 border-warning fs-6">
+                        {{ application.ai_interview_questions|linebreaks }}
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-check-circle text-success fs-1 mb-2"></i>
+                        <p class="text-muted mb-0">Perfect match! No specific gaps found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card shadow-lg border-0 h-100 rounded-4 overflow-hidden">
+            <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center border-0">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-file-pdf me-2"></i>Original Resume Document</h5>
+                <a href="{{ application.candidate.resume.resume_file.url }}" target="_blank" class="btn btn-light btn-sm fw-bold rounded-pill shadow-sm">
+                    <i class="fas fa-external-link-alt me-1"></i> Full Screen
+                </a>
+            </div>
+            <div class="card-body p-0" style="height: 800px; background-color: #525659;">
+                {% if application.candidate.resume.resume_file %}
+                    <embed src="{{ application.candidate.resume.resume_file.url }}#toolbar=0" type="application/pdf" width="100%" height="100%" />
+                {% else %}
+                    <div class="d-flex flex-column justify-content-center align-items-center h-100 bg-light">
+                        <i class="fas fa-file-excel fa-4x text-muted mb-3 opacity-25"></i>
+                        <h4 class="text-muted">Resume Document Not Found</h4>
+                        <p class="small text-muted">The file might have been moved or deleted.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        const score = {{ application.match_score|floatformat:2|default:"0" }}; 
+        const remainder = 100 - score;
+
+        // Dynamic coloring based on AI score
+        let ringColor = '#4f46e5'; 
+        if (score >= 80) ringColor = '#10b981'; // Green
+        else if (score >= 50) ringColor = '#f59e0b'; // Amber
+        else ringColor = '#ef4444'; // Red
+
+        const scoreChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Matched', 'Missing'],
+                datasets: [{
+                    data: [score, remainder],
+                    backgroundColor: [ringColor, '#f3f4f6'],
+                    borderWidth: 0,
+                    cutout: '82%', 
+                    borderRadius: 20 
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false }, 
+                    tooltip: { enabled: false } 
+                },
+                animation: { 
+                    animateScale: true, 
+                    animateRotate: true, 
+                    duration: 2000, 
+                    easing: 'easeOutQuart' 
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+    <h2 class="fw-bolder">HR Control Panel</h2>
+    <div class="d-flex gap-2">
+        <a href="{% url 'export_csv' %}" class="btn btn-success shadow-sm rounded-pill fw-bold px-4">
+            <i class="fas fa-file-excel me-2"></i>Download Report
+        </a>
+        <a href="{% url 'create_job' %}" class="btn btn-primary shadow-sm rounded-pill fw-bold px-4">
+            <i class="fas fa-plus me-2"></i>Post New Job
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-3 mb-md-0">
+        <div class="card shadow-sm border-0 bg-primary text-white rounded-4 h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase fw-bold opacity-75 small">Total Applications</h6>
+                    <h1 class="display-6 fw-bolder mb-0">{{ total_apps }}</h1>
+                </div>
+                <i class="fas fa-users fa-3x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3 mb-md-0">
+        <div class="card shadow-sm border-0 bg-success text-white rounded-4 h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase fw-bold opacity-75 small">Avg Match Score</h6>
+                    <h1 class="display-6 fw-bolder mb-0">{{ avg_score }}%</h1>
+                </div>
+                <i class="fas fa-chart-line fa-3x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-info text-dark rounded-4 h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase fw-bold opacity-75 small">Active Jobs</h6>
+                    <h1 class="display-6 fw-bolder mb-0">{{ active_jobs }}</h1>
+                </div>
+                <i class="fas fa-briefcase fa-3x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="fas fa-trophy text-warning me-2"></i>AI Ranked Candidates</h5>
+        <small class="text-muted">Sorted by AI Match Score</small>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4">Candidate & Status</th>
+                        <th>Position</th>
+                        <th>Contact</th>
+                        <th style="width: 200px;">AI Match Score</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in applications %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-user-circle text-secondary fs-3"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ app.candidate.first_name|default:app.candidate.username|title }}</div>
+                                    <span class="badge rounded-pill 
+                                        {% if app.status == 'hired' %}bg-success
+                                        {% elif app.status == 'rejected' %}bg-danger
+                                        {% elif app.status == 'interview' %}bg-info
+                                        {% elif app.status == 'shortlisted' %}bg-primary
+                                        {% else %}bg-warning text-dark{% endif %}" style="font-size: 0.7rem;">
+                                        {{ app.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-dark small fw-semibold">{{ app.job.title }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                {% if app.candidate.resume.phone_number and app.candidate.resume.phone_number != "Not Found" %}
+                                    <a href="tel:{{ app.candidate.resume.phone_number }}" class="btn btn-sm btn-light text-success border shadow-sm" title="Call"><i class="fas fa-phone-alt"></i></a>
+                                {% endif %}
+                                {% if app.candidate.resume.contact_email and app.candidate.resume.contact_email != "Not Found" %}
+                                    <a href="mailto:{{ app.candidate.resume.contact_email }}" class="btn btn-sm btn-light text-primary border shadow-sm" title="Email"><i class="fas fa-envelope"></i></a>
+                                {% endif %}
+                                {% if app.candidate.resume.linkedin_url and app.candidate.resume.linkedin_url != "Not Found" %}
+                                    <a href="{{ app.candidate.resume.linkedin_url }}" target="_blank" class="btn btn-sm btn-light text-info border shadow-sm" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="fw-bold me-2 small">{{ app.match_score }}%</span>
+                                <div class="progress flex-grow-1" style="height: 6px;">
+                                    <div class="progress-bar {% if app.match_score >= 70 %}bg-success{% elif app.match_score >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         role="progressbar" style="width: {{ app.match_score }}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group">
+                                <a href="{% url 'application_detail' app.id %}" class="btn btn-sm btn-dark fw-bold px-3 shadow-sm">
+                                    <i class="fas fa-magic text-warning me-1"></i> Report
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-dark dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="visually-hidden">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                                    <li><h6 class="dropdown-header">Update Status</h6></li>
+                                    <li><a class="dropdown-item small" href="{% url 'update_status' app.id 'shortlisted' %}"><i class="fas fa-check text-primary me-2"></i>Shortlist</a></li>
+                                    <li><a class="dropdown-item small" href="{% url 'update_status' app.id 'interview' %}"><i class="fas fa-calendar-alt text-info me-2"></i>Invite to Interview</a></li>
+                                    <li><a class="dropdown-item small" href="{% url 'update_status' app.id 'hired' %}"><i class="fas fa-user-plus text-success me-2"></i>Hire</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item small text-danger" href="{% url 'update_status' app.id 'rejected' %}"><i class="fas fa-times-circle me-2"></i>Reject</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3 opacity-25"></i>
+                            <h5 class="fw-bold">No applications yet!</h5>
+                            <p class="small">When candidates apply, they will appear here ranked by AI.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

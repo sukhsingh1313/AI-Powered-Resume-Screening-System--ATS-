@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-8">
+        <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary mb-3">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-dark text-white rounded-top-4 py-3">
+                <h3 class="mb-0 fw-bold"><i class="fas fa-plus-circle text-primary me-2"></i>Post a New Job</h3>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 bg-white">
+                <p class="text-muted mb-4">Fill out the details below. Our AI will automatically use these requirements to screen incoming resumes.</p>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Job Title</label>
+                        {{ form.title }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Required Skills <span class="text-danger">*</span></label>
+                        {{ form.required_skills }}
+                        <div class="form-text text-muted"><i class="fas fa-robot text-warning me-1"></i> The AI heavily relies on these comma-separated keywords for scoring.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Minimum Experience (Years)</label>
+                        {{ form.min_experience }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Detailed Description</label>
+                        {{ form.description }}
+                    </div>
+
+                    <hr class="my-4">
+                    
+                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow">
+                        <i class="fas fa-rocket me-2"></i> Publish Job Post
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
